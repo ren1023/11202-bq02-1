@@ -27,43 +27,43 @@ class DB{
             if(is_array($array)){//常忽略
                 if(!empty($array)){
                     $tmp=$this->a2s($array);
-                    $sql.=join(" && ",$tmp);
+                    $sql.=" where ".join(" && ",$tmp);//常忽略
                 }
-            }
+            }else{//常忽略
             $sql.=" $array";
         }
         $sql.=$other;
         return $sql;
-    }
-    protected function math($math,$col,$array,$other){
+    }}
+    protected function math($math,$col,$array='',$other=''){
         $sql="select $math(`$col`) from `$this->table` ";
-        $sql.=$this->sql_all($sql,$array,$other);
+        $sql=$this->sql_all($sql,$array,$other);
         return $this->pdo->query($sql)->fetchColumn();
     }
 
     function all($where='',$other=''){
         $sql="select * from `$this->table` ";
-        $sql.=$this->sql_all($sql,$where,$other);
+        $sql=$this->sql_all($sql,$where,$other);//這兒不需要連結
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
     function find($id){
-        $sql="select * from `$this->table` where ";
+        $sql="select * from `$this->table` ";
         if(is_array($id)){
             $tmp=$this->a2s($id);
-            $sql.=join(" && ",$tmp);
-        }elseif(is_numeric($id)){
-            $sql.=" `id`='{$id}'";
+            $sql.="  where ".join(" && ",$tmp);
+        }else if(is_numeric($id)){ // else if 要分開
+            $sql.= " where `id`='{$id}'";
         }
         $row=$this->pdo->query($sql)->fetch(PDO::FETCH_ASSOC);//常忽略
         return $row;
     }
     function del($id){
-        $sql="delete from `$this->table` where ";
+        $sql="delete from `$this->table` ";
         if(is_array($id)){
             $tmp=$this->a2s($id);
-            $sql.=join(" && ",$tmp);
-        }elseif(is_numeric($id)){
-            $sql.=" `id`='{$id}'";
+            $sql.=" where ".join(" && ",$tmp);//where 放這行 前面要空白比較不會有錯
+        }else if(is_numeric($id)){ // else if 要分開
+            $sql.=" where `id`='{$id}'";
         }
         return $this->pdo->exec($sql);
     }
@@ -115,3 +115,16 @@ $Total=new DB('total');
 $News=new DB('news');
 $Log=new DB('logs');
 $Que=new DB('ques');
+
+if (!isset($_SESSION['visited'])) {
+    if ($Total->find(['total' => date('Y-m-d')]['total'] > 0)) {
+        $total = $Total->find(['date' => date('Y-m-d')]);
+        $total['total']++;
+        $Total->save($total);
+    }else{
+        $Total->save(['total'=>1,'date'=>date('Y-m-d')]);
+    }
+
+} else {
+    $_SESSION['visited'] = 1;
+}
