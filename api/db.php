@@ -44,6 +44,7 @@ class DB{
     function all($where='',$other=''){
         $sql="select * from `$this->table` ";
         $sql=$this->sql_all($sql,$where,$other);//這兒不需要連結
+        // dd($sql);
         return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
     function find($id){
@@ -80,6 +81,7 @@ class DB{
             $cols="(`".join("`,`",array_keys($array))."`)";
             $vals="('".join("','",$array)."')";
             $sql=$sql.$cols." values ".$vals;//values常拚錯
+            // print_r($sql);
         }
         return $this->pdo->exec($sql);//常忽略
     }
@@ -95,7 +97,7 @@ class DB{
     }
     function count($where='',$other=''){
         $sql="select count(*) from `$this->table` ";
-        $sql.=$this->sql_all($sql,$where,$other);
+        $sql=$this->sql_all($sql,$where,$other);//不需要連接.，這個問題常忽略要注意
         return $this->pdo->query($sql)->fetchColumn();
     }
 
@@ -116,15 +118,15 @@ $News=new DB('news');
 $Log=new DB('logs');
 $Que=new DB('ques');
 
+
+
 if (!isset($_SESSION['visited'])) {
-    if ($Total->find(['total' => date('Y-m-d')]['total'] > 0)) {
+    if ($Total->count(['date' => date('Y-m-d')]) > 0) {  // 這個sql要小心：目的只要撈日期是否有大於0
         $total = $Total->find(['date' => date('Y-m-d')]);
         $total['total']++;
         $Total->save($total);
     }else{
         $Total->save(['total'=>1,'date'=>date('Y-m-d')]);
     }
-
-} else {
     $_SESSION['visited'] = 1;
 }
