@@ -36,7 +36,15 @@
         $.get('./api/get_list.php',{type},(list)=>{
             $('.list-items').html(list);
             $('.list-items').show();
-            $('article').hide();
+            $('.article').hide();
+        })
+    }
+
+    function getNews(id){
+        $.get('./api/get_news.php',{id},(news)=>{
+            $('.article').html(news);
+            $('.article').show();
+            $('.list-items').hide();
         })
     }
 </script>
